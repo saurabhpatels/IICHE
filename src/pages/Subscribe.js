@@ -10,13 +10,7 @@ const Subscribe = () => {
         designation: '',
         membershipType: '',
         interests: [],
-        experience: '',
-        notifications: {
-            events: true,
-            workshops: true,
-            newsletters: true,
-            awards: false
-        }
+        experience: ''
     });
 
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -36,16 +30,6 @@ const Subscribe = () => {
             interests: prev.interests.includes(interest)
                 ? prev.interests.filter(item => item !== interest)
                 : [...prev.interests, interest]
-        }));
-    };
-
-    const handleNotificationChange = (type) => {
-        setFormData(prev => ({
-            ...prev,
-            notifications: {
-                ...prev.notifications,
-                [type]: !prev.notifications[type]
-            }
         }));
     };
 
@@ -263,29 +247,6 @@ const Subscribe = () => {
                                         className="rounded border-gray-300 text-blue-600 focus:ring-0"
                                     />
                                     <span className="text-sm text-gray-700">{interest}</span>
-                                </label>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Notification Preferences */}
-                    <div className="p-6">
-                        <h3 className="text-lg font-semibold mb-4">Notification Preferences</h3>
-                        <div className="space-y-3">
-                            {Object.entries(formData.notifications).map(([key, value]) => (
-                                <label key={key} className="flex items-center space-x-3 cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        checked={value}
-                                        onChange={() => handleNotificationChange(key)}
-                                        className="rounded border-gray-300 text-blue-600 focus:ring-0"
-                                    />
-                                    <span className="text-sm text-gray-700 capitalize">
-                                        {key === 'newsletters' ? 'Newsletters & Updates' :
-                                            key === 'events' ? 'Event Invitations' :
-                                                key === 'workshops' ? 'Workshop Notifications' :
-                                                    'Award & Recognition Updates'}
-                                    </span>
                                 </label>
                             ))}
                         </div>

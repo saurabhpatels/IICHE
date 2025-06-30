@@ -10,7 +10,7 @@ const Landing = () => {
         {
             id: 1,
             title: "Annual Chemical Engineering Symposium 2024",
-            speaker: "Dr. Rajesh Kumar",
+            speaker: "Dr. Rajsesh Kumar",
             date: "Dec 15, 2024",
             youtubeId: "dQw4w9WgXcQ",
             thumbnail: "https://placehold.co/400x225?text=Symposium+2024",

@@ -138,6 +138,43 @@ class EventService {
         }
     }
 
+    // Add photos to an existing event
+    async addPhotosToEvent(eventId, photos) {
+        const toastId = toast.loading('Adding photos...');
+
+        try {
+            const formData = new FormData();
+
+            // Add all photos to FormData
+            photos.forEach(photo => {
+                formData.append('photos', photo);
+            });
+
+            const response = await apiClient.post(`/events/${eventId}/photos`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+
+            toast.success(`${photos.length} photo(s) added successfully!`, { id: toastId });
+            return {
+                success: true,
+                data: response.data.data || response.data,
+                message: 'Photos added successfully'
+            };
+        } catch (error) {
+            console.error(`Error adding photos to event ${eventId}:`, error);
+            const errorMessage = error.response?.data?.message || 'Failed to add photos';
+            toast.error(errorMessage, { id: toastId });
+            return {
+                success: false,
+                data: null,
+                message: errorMessage,
+                error: error
+            };
+        }
+    }
+
     // Helper method to show generic error toast
     showError(message, error = null) {
         console.error(message, error);

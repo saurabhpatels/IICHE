@@ -1,27 +1,15 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import EventForm from '../components/EventForm';
 import EventCard from '../components/EventCard';
 import { eventsData, EVENT_TYPES } from '../data/eventsData';
-import eventService from '../services/eventService';
+import useEvents from '../hooks/useEvents';
 
 const Events = () => {
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
     const [showAddEventModal, setShowAddEventModal] = useState(false);
-    const [events, setEvents] = useState([]);
 
-    const fetchEvents = async () => {
-        try {
-            const response = await eventService.getAllEvents();
-            setEvents(response.data);
-        } catch (error) {
-            console.error('Error fetching events:', error);
-        }
-    };
-
-    useEffect(() => {
-        fetchEvents();
-    }, []);
+    const { events, loading, error, fetchEvents } = useEvents();
 
     // Generate categories dynamically from EVENT_TYPES
     const categories = useMemo(() => {
@@ -45,9 +33,39 @@ const Events = () => {
         fetchEvents();
     };
 
+
     const handleCancelAddEvent = () => {
         setShowAddEventModal(false);
     };
+
+    // Show loading state
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading events...</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Show error state
+    if (error) {
+        return (
+            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+                <div className="text-center">
+                    <p className="text-red-600 mb-4">Error loading events: {error}</p>
+                    <button
+                        onClick={() => fetchEvents()}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                        Try Again
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -67,7 +85,7 @@ const Events = () => {
                         </button>
                     </div>
                     <p className="text-lg text-gray-600 mb-6">
-                        Explore our collection of {eventsData.length} events showcasing chemical engineering excellence
+                        Explore our collection of {events.length} events showcasing chemical engineering excellence
                     </p>
 
                     {/* Search Bar */}
@@ -116,16 +134,23 @@ const Events = () => {
 
             {/* Events Grid */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-4">
-                    {filteredEvents.map((event) => (
-                        <EventCard
-                            key={event.id}
-                            event={event}
-                            onEventDeleted={fetchEvents}
-                            variant="default"
-                        />
-                    ))}
-                </div>
+                {filteredEvents.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-4">
+                        {filteredEvents.map((event) => (
+                            <EventCard
+                                key={event.id}
+                                event={event}
+                                onEventUpdated={fetchEvents}
+                                variant="default"
+                            />
+                        ))}
+                    </div>
+                ) : (
+                    <div className="text-center py-12">
+                        <p className="text-gray-500 text-lg">No events match your criteria.</p>
+                        <p className="text-gray-400 mt-2">Try adjusting your search or filters!</p>
+                    </div>
+                )}
             </div>
 
             {/* Add Event Modal */}

@@ -18,13 +18,13 @@ const EventForm = ({ event, onSave, onCancel }) => {
         reset
     } = useForm({
         defaultValues: {
-            title: '',
-            speaker: '',
-            date: '',
-            type: 'Conference',
-            location: '',
+            title: "Young Engineer Excellence Awards",
+            speaker: "IIChE Committee",
+            date: "Jan 25, 2023",
+            type: "Award Ceremony",
+            location: "Alumni Hall",
             youtubeId: '',
-            description: ''
+            description: "Celebrating excellence and achievements in chemical engineering"
         }
     });
 

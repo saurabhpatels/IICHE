@@ -110,17 +110,18 @@ const Events = () => {
             {/* Results Count */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                 <p className="text-sm text-gray-600">
-                    Showing {filteredEvents.length} of {eventsData.length} events
+                    Showing {filteredEvents.length} of {events.length} events
                 </p>
             </div>
 
             {/* Events Grid */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-3 gap-4">
                     {filteredEvents.map((event) => (
                         <EventCard
                             key={event.id}
                             event={event}
+                            onEventDeleted={fetchEvents}
                             variant="default"
                         />
                     ))}

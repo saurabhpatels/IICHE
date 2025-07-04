@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import toast from 'react-hot-toast';
 import { EVENT_TYPES } from '../data/eventsData';
 import eventService from '../services/eventService';
 
-
 const EventForm = ({ event, onSave, onCancel }) => {
-    const [selectedPhotos, setSelectedPhotos] = useState([]); // Store File objects
+    const [selectedPhotos, setSelectedPhotos] = useState([]);
     const [photoPreview, setPhotoPreview] = useState([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -45,9 +45,8 @@ const EventForm = ({ event, onSave, onCancel }) => {
 
             // Set existing photos (for edit mode)
             if (event.photos && event.photos.length > 0) {
-                // For existing events, we'll handle this differently since they're URLs
                 setPhotoPreview(event.photos.map((photo, index) => ({
-                    url: photo,
+                    url: photo.url || photo,
                     name: `Existing photo ${index + 1}`,
                     isExisting: true
                 })));
@@ -60,6 +59,24 @@ const EventForm = ({ event, onSave, onCancel }) => {
         const files = Array.from(event.target.files);
 
         if (files.length === 0) return;
+
+        // Validate file types
+        const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+        const invalidFiles = files.filter(file => !validTypes.includes(file.type));
+
+        if (invalidFiles.length > 0) {
+            toast.error('Please select only image files (JPEG, PNG, GIF, WebP)');
+            return;
+        }
+
+        // Validate file sizes (max 5MB each)
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        const oversizedFiles = files.filter(file => file.size > maxSize);
+
+        if (oversizedFiles.length > 0) {
+            toast.error('Please select images smaller than 5MB');
+            return;
+        }
 
         try {
             // Store actual File objects
@@ -75,8 +92,11 @@ const EventForm = ({ event, onSave, onCancel }) => {
 
             // Clear the file input so users can select the same files again
             event.target.value = '';
+
+            toast.success(`${files.length} photo(s) added successfully`);
         } catch (error) {
             console.error('Error processing files:', error);
+            toast.error('Error processing files. Please try again.');
         }
     };
 
@@ -97,6 +117,13 @@ const EventForm = ({ event, onSave, onCancel }) => {
         setIsSubmitting(true);
 
         try {
+            // Validation
+            if (!event && selectedPhotos.length === 0) {
+                toast.error('Please select at least one photo');
+                setIsSubmitting(false);
+                return;
+            }
+
             // Create FormData for file upload
             const formData = new FormData();
 
@@ -108,7 +135,6 @@ const EventForm = ({ event, onSave, onCancel }) => {
             formData.append('location', data.location);
             formData.append('youtubeId', data.youtubeId || '');
             formData.append('description', data.description || '');
-            formData.append('id', event ? event.id : Date.now().toString());
 
             // Append photos as files
             selectedPhotos.forEach((photo, index) => {
@@ -129,22 +155,22 @@ const EventForm = ({ event, onSave, onCancel }) => {
             let result;
             if (event) {
                 // Update existing event
-                result = await eventService.updateEvent(event.id, formData);
+                result = await eventService.updateEvent(event._id || event.id, formData);
             } else {
                 // Create new event
                 result = await eventService.createEvent(formData);
             }
 
-            console.log('Event saved successfully!', result);
-
-            // Call the parent callback if provided
-            if (onSave) {
-                onSave(result);
+            if (result.success) {
+                // Call the parent callback if provided
+                if (onSave) {
+                    onSave(result.data);
+                }
             }
 
         } catch (error) {
             console.error('Error submitting form:', error);
-            alert(`Error submitting form: ${error.message || 'Unknown error'}`);
+            toast.error('Failed to submit form. Please try again.');
         } finally {
             setIsSubmitting(false);
         }
@@ -208,6 +234,7 @@ const EventForm = ({ event, onSave, onCancel }) => {
                                 <input
                                     type="text"
                                     {...register('title', validationRules.title)}
+                                    placeholder="Enter event title"
                                     className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 ${errors.title ? 'border-red-500' : 'border-gray-300'
                                         }`}
                                 />
@@ -223,6 +250,7 @@ const EventForm = ({ event, onSave, onCancel }) => {
                                 <input
                                     type="text"
                                     {...register('speaker', validationRules.speaker)}
+                                    placeholder="Enter speaker name"
                                     className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 ${errors.speaker ? 'border-red-500' : 'border-gray-300'
                                         }`}
                                 />
@@ -274,6 +302,7 @@ const EventForm = ({ event, onSave, onCancel }) => {
                                 <input
                                     type="text"
                                     {...register('location', validationRules.location)}
+                                    placeholder="Enter event location"
                                     className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 ${errors.location ? 'border-red-500' : 'border-gray-300'
                                         }`}
                                 />
@@ -302,10 +331,10 @@ const EventForm = ({ event, onSave, onCancel }) => {
 
                         <div>
                             <label className="block text-sm font-medium mb-1">
-                                Event Photos <span className="text-red-500">*</span>
+                                Event Photos {!event && <span className="text-red-500">*</span>}
                             </label>
                             <p className="text-gray-500 text-xs mb-2">
-                                Select multiple photos for the event gallery (at least 1 required). You can select multiple files at once or add more later.
+                                Select multiple photos for the event gallery. You can select multiple files at once.
                             </p>
 
                             <div className="mb-3">
@@ -317,7 +346,7 @@ const EventForm = ({ event, onSave, onCancel }) => {
                                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
                                 />
                                 <p className="text-gray-500 text-xs mt-1">
-                                    Hold Ctrl/Cmd to select multiple files at once
+                                    Hold Ctrl/Cmd to select multiple files at once. Max 5MB per file.
                                 </p>
                             </div>
 
@@ -345,7 +374,7 @@ const EventForm = ({ event, onSave, onCancel }) => {
                                 </div>
                             )}
 
-                            {selectedPhotos.length === 0 && photoPreview.length === 0 && (
+                            {!event && selectedPhotos.length === 0 && photoPreview.length === 0 && (
                                 <p className="text-red-500 text-xs mt-1">At least one photo is required</p>
                             )}
                         </div>
@@ -367,8 +396,10 @@ const EventForm = ({ event, onSave, onCancel }) => {
                         <div className="flex gap-3 pt-4">
                             <button
                                 type="submit"
-                                disabled={isSubmitting || (selectedPhotos.length === 0 && photoPreview.length === 0)}
-                                className={`px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors ${isSubmitting || (selectedPhotos.length === 0 && photoPreview.length === 0) ? 'opacity-50 cursor-not-allowed' : ''
+                                disabled={isSubmitting || (!event && selectedPhotos.length === 0 && photoPreview.length === 0)}
+                                className={`px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors ${isSubmitting || (!event && selectedPhotos.length === 0 && photoPreview.length === 0)
+                                    ? 'opacity-50 cursor-not-allowed'
+                                    : ''
                                     }`}
                             >
                                 {isSubmitting ? 'Saving...' : (event ? 'Update Event' : 'Add Event')}

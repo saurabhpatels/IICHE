@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Base URL for API calls - you can change this to your backend URL
-const BASE_URL = 'https://iiche-be.onrender.com/'; // Change this to your backend URL
+const BASE_URL = 'https://iiche-be.onrender.com/api'; // Change this to your backend URL
 
 // Create axios instance with default configuration
 const apiClient = axios.create({

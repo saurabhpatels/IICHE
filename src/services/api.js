@@ -6,7 +6,7 @@ const BASE_URL = 'http://localhost:4000/api'; // Change this to your backend URL
 // Create axios instance with default configuration
 const apiClient = axios.create({
     baseURL: BASE_URL,
-    timeout: 10000, // 10 seconds timeout
+    timeout: 5000000, // 5 minutes timeout
     headers: {
         'Content-Type': 'application/json',
     },

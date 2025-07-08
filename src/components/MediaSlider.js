@@ -1,17 +1,12 @@
-import React, { useState } from 'react';
-// Import Swiper React components
+import React from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
-// Import Swiper modules
 import { Navigation, Pagination } from 'swiper/modules';
-// Import Swiper styles
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 
 // Reusable Media Slider Component using Swiper
-const MediaSlider = ({ event, isModal = false }) => {
-    const [isFullscreen, setIsFullscreen] = useState(false);
-
+const MediaSlider = ({ event, isModal = false, initialSlide = 0, isFullscreen = false, onCloseFullscreen }) => {
     const slides = [];
     if (event.youtubeId) {
         slides.push({ type: 'video', content: event.youtubeId });
@@ -26,14 +21,6 @@ const MediaSlider = ({ event, isModal = false }) => {
     const showNavigation = slides.length > 1;
     const uniqueId = `swiper-${Math.random().toString(36).substring(2, 15)}`;
 
-    const openFullscreen = () => {
-        setIsFullscreen(true);
-    };
-
-    const closeFullscreen = () => {
-        setIsFullscreen(false);
-    };
-
     const SwiperContent = ({ isFullscreenView = false }) => (
         <div className={`relative ${isFullscreenView ? 'h-full' : (isModal ? 'h-96' : 'h-48')} overflow-hidden rounded-lg group`}>
             <Swiper
@@ -44,6 +31,7 @@ const MediaSlider = ({ event, isModal = false }) => {
                 } : false}
                 pagination={{ clickable: true }}
                 className="w-full h-full"
+                initialSlide={isFullscreenView ? initialSlide : 0}
             >
                 {slides.map((slide, index) => (
                     <SwiperSlide key={index}>
@@ -87,19 +75,6 @@ const MediaSlider = ({ event, isModal = false }) => {
                     </button>
                 </>
             )}
-
-            {/* Expand Button - only show in normal view */}
-            {!isFullscreenView && (
-                <button
-                    onClick={openFullscreen}
-                    className="absolute bottom-2 right-2 z-10 w-8 h-8 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center shadow-md hover:bg-white transition-all duration-200 opacity-0 group-hover:opacity-100 hover:scale-110"
-                    title="Expand to fullscreen"
-                >
-                    <svg className="w-4 h-4 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-                    </svg>
-                </button>
-            )}
         </div>
     );
 
@@ -113,7 +88,7 @@ const MediaSlider = ({ event, isModal = false }) => {
                     <div className="relative w-full h-full max-w-6xl max-h-[90vh] bg-white rounded-lg overflow-hidden">
                         {/* Close Button */}
                         <button
-                            onClick={closeFullscreen}
+                            onClick={onCloseFullscreen}
                             className="absolute top-4 right-4 z-20 w-10 h-10 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center shadow-md hover:bg-white transition-all duration-200 hover:scale-110"
                             title="Close fullscreen"
                         >

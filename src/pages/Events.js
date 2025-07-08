@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import EventForm from '../components/EventForm';
 import EventCard from '../components/EventCard';
-import { eventsData, EVENT_TYPES } from '../data/eventsData';
+import { EVENT_TYPES } from '../data/eventsData';
 import useEvents from '../hooks/useEvents';
 
 const Events = () => {
@@ -9,7 +9,7 @@ const Events = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [showAddEventModal, setShowAddEventModal] = useState(false);
 
-    const { events, loading, error, fetchEvents } = useEvents();
+    const { events, loading, error, refreshEvents } = useEvents();
 
     // Generate categories dynamically from EVENT_TYPES
     const categories = useMemo(() => {
@@ -30,7 +30,7 @@ const Events = () => {
 
     const handleAddEvent = (eventData) => {
         setShowAddEventModal(false);
-        fetchEvents();
+        refreshEvents();
     };
 
 
@@ -57,7 +57,7 @@ const Events = () => {
                 <div className="text-center">
                     <p className="text-red-600 mb-4">Error loading events: {error}</p>
                     <button
-                        onClick={() => fetchEvents()}
+                        onClick={() => refreshEvents()}
                         className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                     >
                         Try Again
@@ -140,7 +140,7 @@ const Events = () => {
                             <EventCard
                                 key={event.id}
                                 event={event}
-                                onEventUpdated={fetchEvents}
+                                onEventUpdated={refreshEvents}
                                 variant="default"
                             />
                         ))}
